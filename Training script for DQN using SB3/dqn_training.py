@@ -27,14 +27,14 @@ def train_dqn_model(total_timesteps=100_000, save_path="models/dqn/dqn_model"):
         tensorboard_log="./tensorboard_logs/dqn/"
     )
 
-    print("📦 Starting DQN training...")
+    print(" Starting DQN training...")
     model.learn(total_timesteps=total_timesteps)
-    print("✅ DQN training complete!")
+    print(" DQN training complete!")
 
     # Save model
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     model.save(save_path)
-    print(f"💾 Model saved to {save_path}")
+    print(f" Model saved to {save_path}")
 
 if __name__ == "__main__":
     train_dqn_model()
