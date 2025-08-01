@@ -40,7 +40,7 @@ def train_reinforce(total_episodes=1000, gamma=0.99, learning_rate=1e-3, save_pa
     optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
     writer = SummaryWriter(log_dir="tensorboard_logs/reinforce")
 
-    print("🚀 Starting REINFORCE training...")
+    print(" Starting REINFORCE training...")
 
     for episode in range(total_episodes):
         log_probs = []
@@ -76,7 +76,7 @@ def train_reinforce(total_episodes=1000, gamma=0.99, learning_rate=1e-3, save_pa
     # Save trained model
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(policy.state_dict(), save_path)
-    print(f"💾 Saved REINFORCE model to {save_path}")
+    print(f" Saved REINFORCE model to {save_path}")
     writer.close()
 
 if __name__ == "__main__":
