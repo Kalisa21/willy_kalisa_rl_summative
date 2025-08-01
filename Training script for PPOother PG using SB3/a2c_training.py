@@ -28,14 +28,14 @@ def train_a2c_model(total_timesteps=100_000, save_path="models/pg/a2c_model"):
         tensorboard_log="./tensorboard_logs/a2c/"
     )
 
-    print("🚀 Starting A2C training...")
+    print(" Starting A2C training...")
     model.learn(total_timesteps=total_timesteps)
-    print("✅ A2C training complete!")
+    print(" A2C training complete!")
 
     # Save model
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     model.save(save_path)
-    print(f"💾 A2C model saved to {save_path}")
+    print(f" A2C model saved to {save_path}")
 
 if __name__ == "__main__":
     train_a2c_model()
