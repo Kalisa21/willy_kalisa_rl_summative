@@ -30,7 +30,7 @@ class LegalHelpEnv(gym.Env):
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         self._agent_pos = np.array([4, 2])
-        self._client_pos = np.array([0, 1])  # 👥
+        self._client_pos = np.array([0, 1])  # 
         self._step_count = 0
 
         obs = self._get_obs()
