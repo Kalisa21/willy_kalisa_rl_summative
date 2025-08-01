@@ -4,12 +4,12 @@
 
 This project simulates an intelligent legal assistant navigating a 5x5 grid-based environment inspired by Rwandan law. The agent must interact with legal components in sequence: 📂 Law Book → 📖 Inquiry → ⚖️ Lawyer → 👥 Client, while avoiding ❌ traps.
 
-## 📁 Project Structure
+##  Project Structure
 
 ...
 
 
-## 🧠 Environment Overview
+##  Environment Overview
 
 - Grid: 5x5
 - Agent starts at fixed position
@@ -25,10 +25,10 @@ This project simulates an intelligent legal assistant navigating a 5x5 grid-base
   - Stepping into ❌ trap
   - Wandering or invalid interaction
 
-## 🕹️ Action Space
+## 🕹 Action Space
 Discrete(5): `[UP, DOWN, LEFT, RIGHT, INTERACT]`
 
-## 🧪 How to Use
+##  How to Use
 
 ### 1. Install dependencies
 ```bash
