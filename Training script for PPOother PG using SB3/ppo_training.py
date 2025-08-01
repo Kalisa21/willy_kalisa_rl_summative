@@ -29,14 +29,14 @@ def train_ppo_model(total_timesteps=100_000, save_path="models/pg/ppo_model"):
         tensorboard_log="./tensorboard_logs/ppo/"
     )
 
-    print("🚀 Starting PPO training...")
+    print(" Starting PPO training...")
     model.learn(total_timesteps=total_timesteps)
-    print("✅ PPO training complete!")
+    print(" PPO training complete!")
 
     # Save model
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     model.save(save_path)
-    print(f"💾 PPO model saved to {save_path}")
+    print(f" PPO model saved to {save_path}")
 
 if __name__ == "__main__":
     train_ppo_model()
