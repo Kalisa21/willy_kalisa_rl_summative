@@ -25,7 +25,7 @@ This project simulates an intelligent legal assistant navigating a 5x5 grid-base
   - Stepping into ❌ trap
   - Wandering or invalid interaction
 
-## 🕹 Action Space
+##  Action Space
 Discrete(5): `[UP, DOWN, LEFT, RIGHT, INTERACT]`
 
 ##  How to Use
