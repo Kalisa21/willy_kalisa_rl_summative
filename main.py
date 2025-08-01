@@ -30,14 +30,14 @@ def run_random_agent(episodes=3, render_mode="human", save_gif=False):
             obs, reward, done, truncated, info = env.step(action)
             total_reward += reward
 
-        print(f"🎯 Reward: {total_reward:.2f}")
+        print(f" Reward: {total_reward:.2f}")
 
     env.close()
 
     if save_gif and frames:
         os.makedirs("gifs", exist_ok=True)
         imageio.mimsave("gifs/random_agent.gif", frames, fps=4)
-        print("📸 GIF saved to gifs/random_agent.gif")
+        print(" GIF saved to gifs/random_agent.gif")
 
 def evaluate_model(algo, model_path, episodes=5, render_mode="human"):
     env = FlattenObservation(LegalHelpEnv(render_mode=render_mode))
@@ -63,7 +63,7 @@ def evaluate_model(algo, model_path, episodes=5, render_mode="human"):
         done = False
         step = 0
 
-        print(f"\n📦 Evaluating {algo.upper()} — Episode {ep+1}")
+        print(f"\n Evaluating {algo.upper()} — Episode {ep+1}")
 
         while not done:
             if algo.lower() == "reinforce":
@@ -82,7 +82,7 @@ def evaluate_model(algo, model_path, episodes=5, render_mode="human"):
                 env.render()
                 time.sleep(0.3)
 
-        print(f"🏁 Reward: {total_reward:.2f}")
+        print(f" Reward: {total_reward:.2f}")
 
     env.close()
 
