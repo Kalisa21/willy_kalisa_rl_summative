@@ -1,48 +1,41 @@
-# a2c_training.py
-
-import os
 from stable_baselines3 import A2C
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.callbacks import EvalCallback
 from gymnasium.wrappers import FlattenObservation
 from custom_env import LegalHelpEnv
+import os
 
-# Create necessary directories
-os.makedirs("models/a2c", exist_ok=True)
-os.makedirs("logs/a2c", exist_ok=True)
+def train_a2c_model(total_timesteps=100_000, save_path="models/pg/a2c_model"):
+    # Create and wrap environment
+    def make_env():
+        env = LegalHelpEnv(render_mode=None)
+        env = FlattenObservation(env)
+        env = Monitor(env)
+        return env
 
-# Wrap environment
-env = FlattenObservation(Monitor(LegalHelpEnv(), filename="logs/a2c/monitor.csv"))
-eval_env = FlattenObservation(Monitor(LegalHelpEnv()))
+    env = DummyVecEnv([make_env])
 
-# Evaluation callback
-eval_callback = EvalCallback(
-    eval_env,
-    best_model_save_path="models/a2c/best_model",
-    log_path="logs/a2c/",
-    eval_freq=5000,
-    deterministic=True,
-    render=False,
-)
+    # Initialize A2C model
+    model = A2C(
+        policy="MlpPolicy",
+        env=env,
+        learning_rate=7e-4,
+        gamma=0.99,
+        n_steps=5,
+        ent_coef=0.01,
+        vf_coef=0.5,
+        verbose=1,
+        tensorboard_log="./tensorboard_logs/a2c/"
+    )
 
-# A2C Agent
-model = A2C(
-    policy="MlpPolicy",
-    env=env,
-    learning_rate=7e-4,
-    n_steps=5,
-    gamma=0.99,
-    gae_lambda=1.0,
-    ent_coef=0.01,
-    vf_coef=0.25,
-    max_grad_norm=0.5,
-    use_rms_prop=True,
-    rms_prop_eps=1e-5,
-    verbose=1,
-    tensorboard_log="./logs/a2c/"
-)
+    print("🚀 Starting A2C training...")
+    model.learn(total_timesteps=total_timesteps)
+    print("✅ A2C training complete!")
 
-# Train the agent
-model.learn(total_timesteps=50000, callback=eval_callback)
-model.save("models/a2c/final_model")
-print("✅ A2C training complete.")
+    # Save model
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    model.save(save_path)
+    print(f"💾 A2C model saved to {save_path}")
+
+if __name__ == "__main__":
+    train_a2c_model()

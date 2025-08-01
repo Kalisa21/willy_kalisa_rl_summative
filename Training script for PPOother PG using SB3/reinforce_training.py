@@ -1,87 +1,83 @@
-# reinforce_training.py
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from custom_env import LegalHelpEnv
 import numpy as np
+from custom_env import LegalHelpEnv
+from gymnasium.wrappers import FlattenObservation
 import os
+from torch.utils.tensorboard import SummaryWriter
 
-# Set up logging folders
-os.makedirs("models/reinforce", exist_ok=True)
-
-# Hyperparameters
-learning_rate = 1e-3
-gamma = 0.99
-num_episodes = 500
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Simple MLP Policy Network
+# Simple policy network
 class PolicyNetwork(nn.Module):
     def __init__(self, input_dim, output_dim):
-        super().__init__()
-        self.fc = nn.Sequential(
-            nn.Linear(input_dim, 128),
-            nn.ReLU(),
-            nn.Linear(128, output_dim),
-            nn.Softmax(dim=-1)
-        )
+        super(PolicyNetwork, self).__init__()
+        self.fc1 = nn.Linear(input_dim, 64)
+        self.fc2 = nn.Linear(64, 64)
+        self.output = nn.Linear(64, output_dim)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
-        return self.fc(x)
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        logits = self.output(x)
+        return self.softmax(logits)
 
-# REINFORCE Training Function
-def train():
-    env = LegalHelpEnv()
-    obs_space = env.observation_space["agent"].shape[0]
-    act_space = env.action_space.n
+def discount_rewards(rewards, gamma=0.99):
+    discounted = []
+    R = 0
+    for r in reversed(rewards):
+        R = r + gamma * R
+        discounted.insert(0, R)
+    return discounted
 
-    policy = PolicyNetwork(obs_space, act_space).to(device)
+def train_reinforce(total_episodes=1000, gamma=0.99, learning_rate=1e-3, save_path="models/pg/reinforce_model.pt"):
+    # Environment setup
+    env = FlattenObservation(LegalHelpEnv(render_mode=None))
+    obs_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.n
+
+    policy = PolicyNetwork(obs_dim, action_dim)
     optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
+    writer = SummaryWriter(log_dir="tensorboard_logs/reinforce")
 
-    for episode in range(num_episodes):
-        obs, _ = env.reset()
-        done = False
+    print("🚀 Starting REINFORCE training...")
+
+    for episode in range(total_episodes):
         log_probs = []
         rewards = []
+        obs, info = env.reset()
+        done = False
+        total_reward = 0
 
         while not done:
-            state = torch.tensor(obs["agent"], dtype=torch.float32).to(device)
-            probs = policy(state)
-            dist = torch.distributions.Categorical(probs)
+            obs_tensor = torch.tensor(obs, dtype=torch.float32)
+            action_probs = policy(obs_tensor)
+            dist = torch.distributions.Categorical(action_probs)
             action = dist.sample()
             log_probs.append(dist.log_prob(action))
 
-            obs, reward, terminated, truncated, _ = env.step(action.item())
+            obs, reward, done, truncated, info = env.step(action.item())
             rewards.append(reward)
-            done = terminated or truncated
+            total_reward += reward
 
-        # Compute discounted returns
-        returns = []
-        G = 0
-        for r in reversed(rewards):
-            G = r + gamma * G
-            returns.insert(0, G)
-        returns = torch.tensor(returns, dtype=torch.float32).to(device)
-
-        # Normalize returns
-        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
-
-        # Policy gradient loss
-        loss = []
-        for log_prob, G in zip(log_probs, returns):
-            loss.append(-log_prob * G)
-        loss = torch.stack(loss).sum()
+        # Compute discounted returns and loss
+        discounted = discount_rewards(rewards, gamma)
+        discounted = torch.tensor(discounted, dtype=torch.float32)
+        log_probs = torch.stack(log_probs)
+        loss = -torch.sum(log_probs * discounted)
 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        print(f"Episode {episode+1}/{num_episodes} | Total Reward: {sum(rewards):.2f}")
+        writer.add_scalar("REINFORCE/TotalReward", total_reward, episode)
+        print(f"Episode {episode+1}/{total_episodes} | Total Reward: {total_reward:.2f}")
 
-    torch.save(policy.state_dict(), "models/reinforce/wombguard_reinforce_model.pt")
-    print("✅ REINFORCE training complete.")
+    # Save trained model
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    torch.save(policy.state_dict(), save_path)
+    print(f"💾 Saved REINFORCE model to {save_path}")
+    writer.close()
 
 if __name__ == "__main__":
-    train()
+    train_reinforce()
